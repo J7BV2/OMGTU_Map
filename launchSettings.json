@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Vite Dev Server": {
+      "commandName": "npm",
+      "commandLineArgs": "run dev",
+      "workingDirectory": "${projectDir}"
+    }
+  }
+}
+

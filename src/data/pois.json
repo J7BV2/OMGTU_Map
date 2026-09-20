@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "name": "Main Library",
+    "type": "Academic",
+    "position": [-2, 2.5, -2]
+  },
+  {
+    "id": "2",
+    "name": "Science Center",
+    "type": "Academic",
+    "position": [3, 3.5, -1]
+  },
+  {
+    "id": "3",
+    "name": "Student Union",
+    "type": "Facility",
+    "position": [0, 1.5, 3]
+  },
+  {
+    "id": "4",
+    "name": "Sports Complex",
+    "type": "Facility",
+    "position": [-5, 1, 4]
+  },
+  {
+    "id": "5",
+    "name": "Dormitory A",
+    "type": "Residential",
+    "position": [4, 1, 4]
+  }
+]
