@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import React, { useState, useEffect, Suspense, useCallback } from 'react'
+import { Canvas } from '@react-three/fiber'
+import { OrbitControls, Environment, Grid, Center, Text } from '@react-three/drei';
+import { Search, Globe, Moon, Sun, Map as MapIcon, Loader2, Plus, MapPin } from 'lucide-react';
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
