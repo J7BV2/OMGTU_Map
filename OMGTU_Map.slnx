@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="OMGTU_Map/omgtu_map.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
