@@ -90,7 +90,7 @@ export default function App() {
   }, [darkTheme]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 3000);
+    const timer = setTimeout(() => setLoading(false), 4000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -101,7 +101,7 @@ export default function App() {
       const results = await api.searchPois(searchQuery);
       setPois(results);
       setIsSearching(false);
-    }, 300); // 300ms debounce
+    }, 400); // 300ms debounce
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -141,7 +141,7 @@ export default function App() {
       >
         <Loader2 className="w-12 h-12 mb-4 animate-spin text-foreground" />
         <h1 className="text-2xl font-bold tracking-[0.2em] text-foreground">INITIALIZING</h1>
-        <p className="text-sm tracking-widest uppercase mt-2 text-gray-500">Loading Map Engine</p>
+        <p className="text-sm tracking-widest uppercase mt-2 text-gray-500">OMGTU Map</p>
       </div>
 
       {/* 3D Canvas */}
@@ -168,7 +168,7 @@ export default function App() {
       <header className="absolute top-6 left-6 right-6 z-10 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-3 liquid-glass px-5 py-3 rounded-2xl pointer-events-auto">
           <MapIcon className="w-5 h-5 text-foreground" />
-          <span className="font-semibold tracking-wide uppercase text-sm">UniMap 3D</span>
+          <span className="font-semibold tracking-wide uppercase text-sm">OmGTU 3D</span>
         </div>
         
         <div className="flex items-center gap-2 pointer-events-auto">
