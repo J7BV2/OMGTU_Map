@@ -4,7 +4,6 @@ import { OrbitControls, Environment, Grid, Center, Text, Html } from '@react-thr
 import { Search, Globe, Moon, Sun, Map as MapIcon, Loader2, Plus, MapPin } from 'lucide-react';
 import { api, type POI } from './lib/api';
 
-
 function MapPlaceholder({ pois }: { pois: POI[] }) {
   return (
     <group>
@@ -73,6 +72,8 @@ function MapPlaceholder({ pois }: { pois: POI[] }) {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [darkTheme, setDarkTheme] = useState(true);
+  const [selectedGroups, setSelectedGroups] = useState<'group' | 'auditorium' | 'lecturerGroup'>('group');
+  const [] = useState<'firstFlour' | 'secondFlour' | 'thirdFlour' | 'fourthFlour' | 'fifthFlour' | 'sixthFlour' | 'seventhFlour' | 'eighthFlour'>('firstFlour');
   
   // API State
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,7 +91,7 @@ export default function App() {
   }, [darkTheme]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 4000);
+    const timer = setTimeout(() => setLoading(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -101,7 +102,7 @@ export default function App() {
       const results = await api.searchPois(searchQuery);
       setPois(results);
       setIsSearching(false);
-    }, 400); // 300ms debounce
+    }, 300); // 300ms debounce
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -164,14 +165,16 @@ export default function App() {
         </Canvas>
       </div>
 
-      {/* Header */}
-      <header className="absolute top-6 left-6 right-6 z-10 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-3 liquid-glass px-5 py-3 rounded-2xl pointer-events-auto">
+      {/* Header*/}
+      <header className="absolute top-8 left-6 right-6 z-10 flex items-center justify-between pointer-events-none">
+        {/* Logo */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 liquid-glass px-5 py-3 rounded-2xl pointer-events-auto">
           <MapIcon className="w-5 h-5 text-foreground" />
           <span className="font-semibold tracking-wide uppercase text-sm">OmGTU 3D</span>
         </div>
         
-        <div className="flex items-center gap-2 pointer-events-auto">
+        {/* Language and Theme*/}
+        <div className="absolute right-0 flex items-center gap-2 pointer-events-auto">
           <button 
             className="liquid-glass p-3 rounded-full hover:bg-glass/80 transition-colors"
             title="Switch Language"
@@ -189,17 +192,56 @@ export default function App() {
       </header>
 
       {/* Sidebar */}
-      <aside className="absolute left-6 top-24 bottom-6 w-80 z-10 flex flex-col liquid-glass rounded-3xl overflow-hidden pointer-events-auto transition-transform duration-500" style={{ transform: loading ? 'translateX(-120%)' : 'translateX(0)' }}>
-        <div className="p-6 border-b border-glass-border">
-          <h2 className="text-sm font-bold uppercase tracking-wider mb-4">Points of Interest</h2>
+      <aside className="absolute left-3 top-3 bottom-3 w-100 z-10 flex flex-col liquid-glass rounded-3xl overflow-hidden pointer-events-auto transition-transform duration-500" style={{ transform: loading ? 'translateX(-120%)' : 'translateX(0)' }}>
+        <div className="p-3 left-6 border-b border-glass-border flex flex-row gap-2 overflow-x-auto w-full">
+          {/* Buttons for Groups */}  
+          <button
+            onClick={() => setSelectedGroups('group')}
+            className={`p-2 flex items-center gap-1 rounded-xl transition-colors shrink-0 whitespace-nowrap border border-transparent ${
+                selectedGroups === 'group'
+                ? 'bg-[#666] text-white hover:bg-[#777]' // Активная кнопка
+                : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-glass-border' // Неактивная кнопка
+            }`}
+          >
+            <span className="tracking-wide uppercase text-sm">Group</span>
+          </button>
+          <button
+            onClick={() => setSelectedGroups('lecturerGroup')}
+            className={`p-2 flex items-center gap-1 rounded-xl transition-colors shrink-0 whitespace-nowrap border border-transparent ${
+                selectedGroups === 'lecturerGroup'
+                ? 'bg-[#666] text-white hover:bg-[#777]'
+                : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-glass-border'
+            }`}
+          >
+            <span className="tracking-wide uppercase text-sm">Lecturer</span>
+          </button>
+          <button
+            onClick={() => setSelectedGroups('auditorium')}
+                className={`p-2 flex items-center gap-1 rounded-xl transition-colors shrink-0 whitespace-nowrap border border-transparent ${
+                selectedGroups === 'auditorium'
+                ? 'bg-[#666] text-white hover:bg-[#777]'
+                : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-glass-border'
+            }`}
+          >
+            <span className="tracking-wide uppercase text-sm">Auditorium</span>
+          </button>
+        </div>
+        
+        <div className="p-3 border-b border-glass-border">
+          {/* Search bar */}  
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-500" />
             <input 
               type="text" 
-              placeholder="Search via API..." 
+              placeholder={
+                selectedGroups === 'group' ? 'Search group...' :
+                selectedGroups === 'lecturerGroup' ? 'Search lecturer...' :
+                selectedGroups === 'auditorium' ? 'Search auditorium...' :
+                'Search...'
+                }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-black/5 dark:bg-white/5 border border-glass-border rounded-xl py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-foreground transition-shadow placeholder:text-gray-500"
+              className="w-full bg-black/5 dark:bg-white/5 border border-glass-border rounded-xl py-3 pl-10 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-foreground transition-shadow placeholder:text-gray-500"
             />
             {isSearching && (
               <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
@@ -226,28 +268,6 @@ export default function App() {
               {isSearching ? 'Searching database...' : 'No locations found'}
             </div>
           )}
-        </div>
-
-        {/* Add POI Form (Database Mock) */}
-        <div className="p-4 border-t border-glass-border bg-black/5 dark:bg-white/5">
-          <form onSubmit={handleAddPoi} className="flex flex-col gap-3">
-            <input
-              type="text"
-              placeholder="New location name..."
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="w-full bg-transparent border border-glass-border rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-foreground transition-shadow placeholder:text-gray-500"
-              required
-            />
-            <button 
-              type="submit" 
-              disabled={isAdding || !newName.trim()}
-              className="flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-sm font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              {isAdding ? 'Adding to DB...' : 'Add Marker'}
-            </button>
-          </form>
         </div>
       </aside>
 
