@@ -1,0 +1,46 @@
+vite.config.ts:
+
+	server: {
+        port: 55139,
+    }
+
+
+
+api.ts
+
+    const OMGTU_API_BASE_URL = 'https://rasp.omgtu.ru/api'; (18 string)
+
+
+Method in api.ts
+
+
+    searchOmgtu: async (
+    term: string,
+    type: OmgtuSearchType
+  ): Promise<OmgtuSearchItem[]> => {
+    // Не бьём по API, если запрос пустой или слишком короткий
+    if (!term || term.trim().length < 1) return [];
+
+    try {
+      const url = new URL(`${OMGTU_API_BASE_URL}/search`);
+      url.searchParams.append('term', term);
+      url.searchParams.append('type', type);
+
+      const response = await fetch(url.toString());
+
+      if (!response.ok) {
+        throw new Error(`API вернул статус ${response.status}`);
+      }
+
+      const data: OmgtuSearchItem[] = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Ошибка поиска (${type}):`, error);
+      return [];
+    }
+    /* searchOmgtu async изменен для правильной работы на локальном сервере
+        В проекте (data) лежит txt для старой версии
+        Также не забудь поменять const url в 18 строчке и поменять файл vite.config.ts
+    */
+  },
+

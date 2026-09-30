@@ -1,8 +1,8 @@
 import React, { useState, useEffect, Suspense, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, Grid, Center, Text, Html } from '@react-three/drei';
-import { Search, Globe, Moon, Sun, Map as MapIcon, Loader2, Plus, MapPin } from 'lucide-react';
-import { api, type POI } from './lib/api';
+import { Search, Globe, Moon, Sun, Map as MapIcon, Loader2, University, UserRound, UserRoundGroup } from 'lucide-react';
+import { api, type POI, type OmgtuSearchItem } from './lib/api';
 
 function MapPlaceholder({ pois }: { pois: POI[] }) {
   return (
@@ -69,6 +69,13 @@ function MapPlaceholder({ pois }: { pois: POI[] }) {
   );
 }
 
+//Mapping api
+  const UI_TAB_TO_API_TYPE = {
+    group: 'group',
+    lecturerGroup: 'person',
+    auditorium: 'auditorium',
+  } as const;
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [darkTheme, setDarkTheme] = useState(true);
@@ -77,13 +84,21 @@ export default function App() {
   
   // API State
   const [searchQuery, setSearchQuery] = useState('');
-  const [pois, setPois] = useState<POI[]>([]);
+  const [searchResults, setSearchResults] = useState<OmgtuSearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
+  const [pois, setPois] = useState<POI[]>([]);
 
-  // New POI Form State
-  const [newName, setNewName] = useState('');
-  const [newType, setNewType] = useState('Custom');
+  const handleSelectResult = (item: OmgtuSearchItem) => {
+    const randomPos: [number, number, number] = [
+      (Math.random() - 0.5) * 10,
+      1.5,
+      (Math.random() - 0.5) * 10,
+    ];
+    setPois(prev => [
+      ...prev,
+      { id: String(item.id), name: item.label, type: item.type, position: randomPos },
+    ]);
+  };
 
   useEffect(() => {
     if (darkTheme) document.documentElement.classList.add('dark');
@@ -98,41 +113,23 @@ export default function App() {
   // Debounced Search API Call
   useEffect(() => {
     const handler = setTimeout(async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        return;
+      }
       setIsSearching(true);
-      const results = await api.searchPois(searchQuery);
-      setPois(results);
+      const results = await api.searchOmgtu(
+        searchQuery,
+        UI_TAB_TO_API_TYPE[selectedGroups]
+      );
+      setSearchResults(results);
       setIsSearching(false);
-    }, 300); // 300ms debounce
+    }, 300);
+
     return () => clearTimeout(handler);
-  }, [searchQuery]);
+  }, [searchQuery, selectedGroups]);
 
   const toggleTheme = () => setDarkTheme((prev) => !prev);
-
-  const handleAddPoi = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName.trim()) return;
-    
-    setIsAdding(true);
-    // Сгенерируем случайную позицию рядом с центром для демонстрации
-    const randomPos: [number, number, number] = [
-      (Math.random() - 0.5) * 10,
-      1.5,
-      (Math.random() - 0.5) * 10
-    ];
-
-    await api.addPoi({
-      name: newName,
-      type: newType,
-      position: randomPos
-    });
-
-    // Refresh current search results
-    const results = await api.searchPois(searchQuery);
-    setPois(results);
-    
-    setNewName('');
-    setIsAdding(false);
-  };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden font-sans">
@@ -161,6 +158,7 @@ export default function App() {
             enableRotate={true}
             minPolarAngle={0}
             maxPolarAngle={Math.PI / 2 - 0.1}
+            screenSpacePanning={false}
           />
         </Canvas>
       </div>
@@ -199,8 +197,8 @@ export default function App() {
             onClick={() => setSelectedGroups('group')}
             className={`p-2 flex items-center gap-1 rounded-xl transition-colors shrink-0 whitespace-nowrap border border-transparent ${
                 selectedGroups === 'group'
-                ? 'bg-[#666] text-white hover:bg-[#777]' // Активная кнопка
-                : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-glass-border' // Неактивная кнопка
+                ? 'bg-[#666] text-white hover:bg-[#777]' // РђРєС‚РёРІРЅР°СЏ РєРЅРѕРїРєР°
+                : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-glass-border' // РќРµР°РєС‚РёРІРЅР°СЏ РєРЅРѕРїРєР°
             }`}
           >
             <span className="tracking-wide uppercase text-sm">Group</span>
@@ -226,9 +224,9 @@ export default function App() {
             <span className="tracking-wide uppercase text-sm">Auditorium</span>
           </button>
         </div>
-        
-        <div className="p-3 border-b border-glass-border">
-          {/* Search bar */}  
+
+        {/* Search bar */} 
+        <div className="p-3 border-b border-glass-border"> 
           <div className="relative">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-500" />
             <input 
@@ -248,26 +246,41 @@ export default function App() {
             )}
           </div>
         </div>
-        
+
+        {/* Searching Api (Not fianl)*/} 
         <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-          {pois.length > 0 ? (
-            pois.map((poi) => (
-              <button 
-                key={poi.id}
-                className="w-full text-left px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group flex flex-col gap-1 border border-transparent hover:border-glass-border"
+          {searchResults.length > 0 ? (
+            searchResults.map((item) => (
+             <button
+               key={item.id}
+               onClick={() => handleSelectResult(item)}
+               className="w-full text-left px-1 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group flex flex-col gap-1 border border-transparent hover:border-glass-border"
               >
-                <span className="font-medium text-sm text-foreground flex items-center gap-2">
-                  <MapPin className="w-3 h-3" />
-                  {poi.name}
-                </span>
-                <span className="text-xs text-gray-500 uppercase tracking-wider pl-5">{poi.type}</span>
-              </button>
+              {/* Main String for Label + Icon*/}
+              <span className="font-semibold text-base text-foreground flex items-center gap-2 uppercase tracking-wide">
+               {selectedGroups === 'lecturerGroup' && <UserRound className="w-5 h-5 shrink-0" />}
+               {selectedGroups === 'group' && <UserRoundGroup className="w-5 h-5 shrink-0" />}
+               {selectedGroups === 'auditorium' && <University className="w-5 h-5 shrink-0" />}
+               {item.label}
+              </span>
+
+              {/* Second String: Facultet and Forma obycheniya*/}
+              <span className="text-xs text-gray-500 pl-5 truncate">
+               {item.description}
+              </span>
+            </button>
             ))
           ) : (
+            
+              /* Field for exepctions*/    
             <div className="text-center py-8 text-gray-500 text-sm">
-              {isSearching ? 'Searching database...' : 'No locations found'}
+              {isSearching
+                ? 'РџРѕРёСЃРє...'
+                : searchQuery.trim()
+                  ? 'РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ'
+                  : 'Р’РІРµРґРёС‚Рµ Р·Р°РїСЂРѕСЃ РґР»СЏ РїРѕРёСЃРєР°'}
             </div>
-          )}
+            )}
         </div>
       </aside>
 

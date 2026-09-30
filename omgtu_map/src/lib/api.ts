@@ -7,6 +7,18 @@ export interface POI {
   position: [number, number, number];
 }
 
+export interface OmgtuSearchItem {
+  id: number;
+  label: string;
+  description: string;
+  type: 'group' | 'person' | 'auditorium'
+}
+export type OmgtuSearchType = 'group' | 'person' | 'auditorium';
+
+// Before const OMGTU_API_BASE_URL = 'https://rasp.omgtu.ru/api';
+// Now
+const OMGTU_API_BASE_URL = '/omgtu-api';
+
 // Имитация базы данных через localStorage, чтобы данные сохранялись при перезагрузке
 const getDb = (): POI[] => {
   const stored = localStorage.getItem('unimap_pois_db');
@@ -36,19 +48,36 @@ export const api = {
     });
   },
 
-  // Добавление новой точки на карту
-  addPoi: async (poi: Omit<POI, 'id'>): Promise<POI> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const db = getDb();
-        const newPoi: POI = {
-          ...poi,
-          id: Math.random().toString(36).substring(2, 9), // Генерация ID
-        };
-        db.push(newPoi);
-        localStorage.setItem('unimap_pois_db', JSON.stringify(db));
-        resolve(newPoi);
-      }, 400);
-    });
+  /**
+   * Универсальный поиск по API ОмГТУ.
+   * @param term - поисковый запрос (например, "Д-23")
+   * @param type - что ищем: group | lecturer | auditorium
+   */
+  searchOmgtu: async (
+    term: string,
+    type: OmgtuSearchType
+  ): Promise<OmgtuSearchItem[]> => {
+    if (!term || term.trim().length < 1) return [];
+
+      try {
+        const params = new URLSearchParams({
+        term,
+        type,
+        });
+
+        const url = `${OMGTU_API_BASE_URL}/search?${params.toString()}`;
+        // получится: /omgtu-api/search?term=...&type=group
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`API вернул статус ${response.status}`);
+        }
+
+        const data: OmgtuSearchItem[] = await response.json();
+        return data;
+      } catch (error) {
+      console.error(`Ошибка поиска (${type}):`, error);
+      return [];
+      }
   },
 };
